@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Checkout - MediDelivery{% endblock %}
+
+{% block content %}
+
+<a class="btn btn-link" href="{% url 'core:cart' %}">← Back to Cart</a>
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px;">
+  <div>
+    <h1 class="page-title">Checkout</h1>
+    <p class="page-subtitle">Confirm your details and choose a payment method.</p>
+  </div>
+
+  <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.9);">
+    <div class="card-body" style="padding:12px 14px;">
+      <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Grand Total</div>
+      <div style="font-weight:900; font-size:22px; margin-top:6px;">₹{{ grand_total }}</div>
+    </div>
+  </div>
+</div>
+
+{% if error %}
+  <div class="alert alert-error" style="margin-top:12px;">{{ error }}</div>
+{% endif %}
+
+<div class="grid grid-2" style="margin-top:14px; align-items:start;">
+
+  <!-- LEFT: Delivery form + payment -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Delivery Details</h3>
+      <p class="muted" style="margin-top:6px;">Make sure phone and address are correct for delivery.</p>
+
+      <form method="post" class="form-row" style="margin-top:12px;">
+        {% csrf_token %}
+
+        <div class="form-row">
+          <label>Full Name</label>
+          <input class="input" name="full_name" value="{{ initial_full_name }}" placeholder="Full name">
+        </div>
+
+        <div class="form-row" style="margin-top:10px;">
+          <label>Phone</label>
+          <input class="input" name="phone" value="{{ initial_phone }}" placeholder="Phone number">
+        </div>
+
+        <div class="form-row" style="margin-top:10px;">
+          <label>Address</label>
+          <textarea class="input" name="address" placeholder="House name, street, landmark...">{{ initial_address }}</textarea>
+        </div>
+
+        <h3 class="card-title" style="margin:16px 0 10px;">Payment Method</h3>
+
+        <!-- Payment cards -->
+        <label class="card" style="display:block; box-shadow:none; border:1px solid rgba(226,232,240,.9); margin-bottom:10px; cursor:pointer;">
+          <div class="card-body" style="padding:14px; display:flex; gap:10px; align-items:flex-start;">
+            <input type="radio" name="payment_method" value="cod" checked style="margin-top:4px;">
+            <div>
+              <div style="font-weight:900;">Cash on Delivery (COD)</div>
+              <div class="muted" style="margin-top:4px;">Pay when the order is delivered.</div>
+            </div>
+            <div style="margin-left:auto;">
+              <span class="badge badge-success"><span class="dot"></span>Popular</span>
+            </div>
+          </div>
+        </label>
+
+        <label class="card" style="display:block; box-shadow:none; border:1px solid rgba(226,232,240,.9); cursor:pointer;">
+          <div class="card-body" style="padding:14px; display:flex; gap:10px; align-items:flex-start;">
+            <input type="radio" name="payment_method" value="razorpay" style="margin-top:4px;">
+            <div>
+              <div style="font-weight:900;">Razorpay</div>
+              <div class="muted" style="margin-top:4px;">UPI / Card / NetBanking (secure online payment).</div>
+            </div>
+            <div style="margin-left:auto;">
+              <span class="badge badge-info"><span class="dot"></span>Secure</span>
+            </div>
+          </div>
+        </label>
+
+        <button class="btn btn-primary" type="submit" style="width:100%; margin-top:14px;">
+          Place Order
+        </button>
+
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="badge"><span class="dot"></span>Verified stock</span>
+          <span class="badge"><span class="dot"></span>Safe delivery</span>
+          <span class="badge"><span class="dot"></span>Secure payments</span>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Order summary -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Order Items</h3>
+
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m, qty, subtotal in items %}
+            <tr>
+              <td style="white-space:normal;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  {% if m.image %}
+                    <img class="thumb" src="{{ m.image.url }}" alt="{{ m.name }}">
+                  {% else %}
+                    <div class="thumb" style="display:grid; place-items:center; font-weight:900; color:#64748b;">Rx</div>
+                  {% endif %}
+                  <div>
+                    <div style="font-weight:900;">{{ m.name }}</div>
+                    <div class="muted" style="font-weight:800; margin-top:2px;">₹{{ m.price }} each</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:900;">{{ qty }}</td>
+              <td style="font-weight:900;">₹{{ subtotal }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; border-top:1px solid rgba(226,232,240,.9); padding-top:12px; display:flex; justify-content:space-between;">
+        <span style="font-weight:900;">Grand Total</span>
+        <span style="font-weight:900; font-size:18px;">₹{{ grand_total }}</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

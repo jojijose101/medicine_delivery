@@ -1,0 +1,47 @@
+<h2>📊 Admin Dashboard</h2>
+
+<p>Total Orders: {{ total }}</p>
+<p>Delivered: {{ delivered }}</p>
+<p>Pending: {{ pending }}</p>
+
+<hr>
+
+<table border="1" cellpadding="5">
+  <tr>
+    <th>ID</th>
+    <th>Customer</th>
+    <th>Status</th>
+    <th>Assigned Delivery</th>
+    <th>Assign</th>
+  </tr>
+
+  {% for o in orders %}
+  <tr>
+    <td>{{ o.id }}</td>
+    <td>{{ o.user.username }}</td>
+    <td>{{ o.status }}</td>
+    <td>
+      {% if o.assigned_delivery %}
+        {{ o.assigned_delivery.username }}
+      {% else %}
+        Not Assigned
+      {% endif %}
+    </td>
+    <td>
+      <form method="post" action="{% url 'adminapp:assign_delivery' o.id %}">
+        {% csrf_token %}
+        <select name="delivery_id" required>
+          <option value="">Select</option>
+          {% for d in delivery_users %}
+            <option value="{{ d.id }}">{{ d.username }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Assign</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<br>
+<a href="{% url 'core:home' %}">Home</a>

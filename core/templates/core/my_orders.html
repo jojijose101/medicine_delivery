@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}My Orders - MediDelivery{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+  <div>
+    <h1 class="page-title">My Orders</h1>
+    <p class="page-subtitle">Track your placed, shipped, and delivered orders.</p>
+  </div>
+
+  <a class="btn btn-outline" href="{% url 'core:home' %}">← Home</a>
+</div>
+
+{% if orders %}
+  <div class="card" style="margin-top:14px;">
+    <div class="card-body">
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td style="font-weight:900;">#{{ o.id }}</td>
+
+              <td style="white-space:normal;">
+                <div>{{ o.created_at|date:"d M Y" }}</div>
+                <div class="muted" style="font-weight:800;">{{ o.created_at|date:"h:i A" }}</div>
+              </td>
+
+              <td>
+                {% if o.status == "placed" %}
+                  <span class="badge badge-info"><span class="dot"></span>Placed</span>
+                {% elif o.status == "packed" %}
+                  <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+                {% elif o.status == "shipped" %}
+                  <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+                {% elif o.status == "delivered" %}
+                  <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+                {% elif o.status == "cancelled" %}
+                  <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+                {% else %}
+                  <span class="badge"><span class="dot"></span>{{ o.status|title }}</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if o.payment_method == "razorpay" %}
+                  {% if o.is_paid %}
+                    <span class="badge badge-success"><span class="dot"></span>Paid (Razorpay)</span>
+                  {% else %}
+                    <span class="badge badge-warning"><span class="dot"></span>Pending (Razorpay)</span>
+                  {% endif %}
+                {% else %}
+                  {% if o.is_paid %}
+                    <span class="badge badge-success"><span class="dot"></span>Paid (COD)</span>
+                  {% else %}
+                    <span class="badge"><span class="dot"></span>COD</span>
+                  {% endif %}
+                {% endif %}
+              </td>
+
+              <td>
+                <a class="btn btn-outline btn-sm" href="{% url 'core:order_detail' o.id %}">
+                  View
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="muted" style="margin-top:10px; font-weight:800;">
+        Total orders: {{ orders|length }}
+      </div>
+
+    </div>
+  </div>
+{% else %}
+  <div class="card" style="margin-top:14px;">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">No orders yet</h3>
+      <p class="muted" style="margin:8px 0 0;">You haven’t placed any medicine orders yet.</p>
+      <a class="btn btn-primary" href="{% url 'core:home' %}" style="margin-top:12px;">Browse Medicines</a>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

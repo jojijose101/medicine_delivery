@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Home - MediDelivery{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+  <div>
+    <h1 class="page-title">Medicines</h1>
+    <p class="page-subtitle">
+      Order safely • Fast delivery • Verified stock updates
+    </p>
+
+    {% if user.is_authenticated %}
+    <div class="muted" style="font-weight:700;">
+      Welcome, {{ user.username }} 👋
+    </div>
+    {% else %}
+    <div class="muted">
+      Login to place orders and track delivery status.
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+   
+
+    {% if user.is_authenticated and user.profile.role == "delivery" %}
+    <a class="btn btn-primary" href="{% url 'delivery:delivery_dashboard' %}">Delivery Dashboard</a>
+    {% endif %}
+
+    {% if user.is_authenticated and user.profile.role == "admin" %}
+    <a class="btn btn-primary" href="{% url 'adminapp:admin_dashboard' %}">Admin Dashboard</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Search + quick filters -->
+<div class="card" style="margin-top:14px;">
+  <div class="card-body">
+    <form method="get" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <div style="flex:1; min-width:220px;">
+        <input class="input" type="text" name="q" value="{{ q }}" placeholder="Search medicines..." />
+      </div>
+
+      <label style="display:flex; align-items:center; gap:8px; white-space:nowrap;">
+        <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %}>
+        <span class="muted" style="font-weight:800;">In stock only</span>
+      </label>
+
+      <button class="btn btn-primary" type="submit">Search</button>
+
+      {% if q or in_stock %}
+      <a class="btn btn-outline" href="{% url 'core:home' %}">Clear</a>
+      {% endif %}
+    </form>
+    <p class="muted" style="margin:10px 0 0;">
+  Showing {{ medicines|length }} result{{ medicines|length|pluralize }}
+  {% if q %} for “<b>{{ q }}</b>”{% endif %}
+</p>
+
+    <!-- Optional: category chips (static UI; wire later if you want) -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+      <span class="badge badge-info"><span class="dot"></span>All</span>
+      <span class="badge"><span class="dot"></span>Fever</span>
+      <span class="badge"><span class="dot"></span>Cold</span>
+      <span class="badge"><span class="dot"></span>Diabetes</span>
+      <span class="badge"><span class="dot"></span>Skin</span>
+      <span class="badge"><span class="dot"></span>Vitamins</span>
+    </div>
+  </div>
+</div>
+
+<!-- Medicines grid -->
+<div class="grid grid-3" style="margin-top:16px;">
+  {% for m in medicines %}
+  <a class="card" href="{% url 'core:medicine_detail' m.id %}" style="text-decoration:none;">
+    <div class="card-body">
+
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        {% if m.image %}
+          <img class="thumb" src="{{ m.image.url }}" alt="{{ m.name }}">
+        {% else %}
+          <div class="thumb" style="display:grid; place-items:center; font-weight:900; color:#64748b;">
+            Rx
+          </div>
+        {% endif %}
+
+        <div style="flex:1;">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div style="font-weight:900; font-size:16px; line-height:1.2;">
+              {{ m.name }}
+            </div>
+
+            {% if m.stock > 0 %}
+              <span class="badge badge-success"><span class="dot"></span>In stock</span>
+            {% else %}
+              <span class="badge badge-danger"><span class="dot"></span>Out</span>
+            {% endif %}
+          </div>
+
+          <div class="muted" style="margin-top:6px; font-weight:800;">
+            Brand: {{ m.brand }}
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px;">
+            <div style="font-weight:900; font-size:18px;">₹{{ m.price }}</div>
+            <div class="muted" style="font-weight:800;">Stock: {{ m.stock }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+        <span class="btn btn-outline btn-sm">View</span>
+      </div>
+
+    </div>
+  </a>
+  {% empty %}
+  <div class="card" style="grid-column:1/-1;">
+    <div class="card-body">
+      <h3 class="card-title">No medicines available</h3>
+      <p class="muted" style="margin-top:6px;">Try searching with a different keyword.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

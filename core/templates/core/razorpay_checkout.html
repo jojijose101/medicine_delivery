@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Pay for Order #{{ order.id }} - MediDelivery{% endblock %}
+
+{% block content %}
+
+<a class="btn btn-link" href="{% url 'core:order_detail' order.id %}">← Back to Order</a>
+
+<div class="grid grid-2" style="margin-top:12px; align-items:start;">
+
+  <!-- LEFT: Payment card -->
+  <div class="card">
+    <div class="card-body">
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h1 class="page-title" style="margin:0;">Pay for Order #{{ order.id }}</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Secure payment powered by Razorpay.</p>
+        </div>
+
+        <span class="badge badge-info"><span class="dot"></span>Online Payment</span>
+      </div>
+
+      <div class="card" style="margin-top:14px; box-shadow:none; border:1px solid rgba(226,232,240,.9);">
+        <div class="card-body" style="padding:14px;">
+          <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+            Amount to Pay
+          </div>
+
+          <div style="font-weight:900; font-size:26px; margin-top:6px;">
+            ₹{% if amount_rupees %}{{ amount_rupees }}{% else %}{{ amount|floatformat:2 }}{% endif %}
+          </div>
+
+          <div class="muted" style="margin-top:6px; font-weight:800;">
+            Customer: {{ customer_name }} • {{ customer_phone }}
+          </div>
+        </div>
+      </div>
+
+      <button id="rzp-button" class="btn btn-primary" style="width:100%; margin-top:14px;">
+        Pay Now
+      </button>
+
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge"><span class="dot"></span>UPI</span>
+        <span class="badge"><span class="dot"></span>Cards</span>
+        <span class="badge"><span class="dot"></span>NetBanking</span>
+        <span class="badge"><span class="dot"></span>Secure</span>
+      </div>
+
+      <!-- Hidden form submitted after successful payment -->
+      <form id="rzp-form" action="{% url 'core:razorpay_callback' %}" method="POST" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+      </form>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Helpful info -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Payment Tips</h3>
+      <ul class="muted" style="margin:10px 0 0; line-height:1.9; padding-left:18px;">
+        <li>Don’t refresh the page while payment is processing.</li>
+        <li>If payment fails, you can try again from the order page.</li>
+        <li>After success, you’ll be redirected automatically.</li>
+      </ul>
+
+      <div class="card" style="margin-top:14px; box-shadow:none; border:1px solid rgba(226,232,240,.9);">
+        <div class="card-body" style="padding:14px;">
+          <div class="muted" style="font-weight:900;">Order ID</div>
+          <div style="font-weight:900; margin-top:6px;">#{{ order.id }}</div>
+
+          <div class="muted" style="font-weight:900; margin-top:12px;">Razorpay Order ID</div>
+          <div class="muted" style="margin-top:6px; word-break:break-all;">
+            {{ order.razorpay_order_id }}
+          </div>
+
+          <a class="btn btn-outline btn-sm" style="margin-top:12px;"
+             href="{% url 'core:order_detail' order.id %}">
+            View Order Details
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  // Accept either amount_paise or amount (your view currently passes "amount" in paise)
+  var amountPaise = "{% if amount_paise %}{{ amount_paise }}{% else %}{{ amount }}{% endif %}";
+
+  var options = {
+    "key": "{{ razorpay_key_id }}",
+    "amount": amountPaise,
+    "currency": "INR",
+    "name": "MediDelivery",
+    "description": "Order Payment",
+    "order_id": "{{ order.razorpay_order_id }}",
+    "prefill": {
+      "name": "{{ customer_name }}",
+      "contact": "{{ customer_phone }}"
+    },
+    "handler": function (response){
+      document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+      document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+      document.getElementById("razorpay_signature").value = response.razorpay_signature;
+      document.getElementById("rzp-form").submit();
+    }
+  };
+
+  var rzp1 = new Razorpay(options);
+
+  rzp1.on('payment.failed', function (){
+    window.location.href = "{% url 'core:payment_failed' order.id %}";
+  });
+
+  document.getElementById('rzp-button').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+  }
+</script>
+
+{% endblock %}

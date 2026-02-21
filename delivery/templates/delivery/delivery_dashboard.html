@@ -1,0 +1,18 @@
+<h2>🚚 Delivery Dashboard</h2>
+
+{% if orders %}
+  <ul>
+    {% for o in orders %}
+      <li>
+        <a href="{% url 'delivery:delivery_order_detail' o.id %}">
+          Order #{{ o.id }}
+        </a>
+        — {{ o.created_at }} — <b>{{ o.status }}</b>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No assigned orders.</p>
+{% endif %}
+
+<a href="{% url 'core:home' %}">Home</a>

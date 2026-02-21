@@ -1,0 +1,6 @@
+<h2>❌ Payment Not Completed</h2>
+<p>Order #{{ order.id }}</p>
+<p>You can try again anytime.</p>
+
+<a href="{% url 'core:start_payment' order.id %}">Try Again Payment</a> |
+<a href="{% url 'core:order_detail' order.id %}">Back to Order</a>

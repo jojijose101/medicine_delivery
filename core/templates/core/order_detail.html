@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} - MediDelivery{% endblock %}
+
+{% block content %}
+
+<style>
+  
+</style>
+
+<a class="btn btn-link" href="{% url 'core:my_orders' %}">← Back to My Orders</a>
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px;">
+  <div>
+    <h1 class="page-title">Order #{{ order.id }}</h1>
+    <p class="page-subtitle">Track your medicine delivery and payment status.</p>
+  </div>
+
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    {% if order.status == "placed" %}
+      <span class="badge badge-info"><span class="dot"></span>Placed</span>
+    {% elif order.status == "packed" %}
+      <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+    {% elif order.status == "shipped" %}
+      <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+    {% elif order.status == "delivered" %}
+      <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+    {% elif order.status == "cancelled" %}
+      <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+    {% else %}
+      <span class="badge"><span class="dot"></span>{{ order.status|title }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:14px; align-items:start;">
+
+  <!-- LEFT: Tracking + details -->
+  <div class="card">
+    <div class="card-body">
+
+      <h3 class="card-title" style="margin-top:0;">Delivery Tracking</h3>
+
+      {% if order.status != "cancelled" %}
+        <div class="track-wrap">
+          <div class="track-steps">
+
+            <div class="track-step {% if order.status == 'placed' or order.status == 'packed' or order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+              <div class="track-dot"></div>
+              <div class="track-label">Placed</div>
+            </div>
+
+            <div class="track-line {% if order.status == 'packed' or order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}"></div>
+
+            <div class="track-step {% if order.status == 'packed' or order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+              <div class="track-dot"></div>
+              <div class="track-label">Packed</div>
+            </div>
+
+            <div class="track-line {% if order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}"></div>
+
+            <div class="track-step {% if order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+              <div class="track-dot"></div>
+              <div class="track-label">Shipped</div>
+            </div>
+
+            <div class="track-line {% if order.status == 'delivered' %}done{% endif %}"></div>
+
+            <div class="track-step {% if order.status == 'delivered' %}done{% endif %}">
+              <div class="track-dot"></div>
+              <div class="track-label">Delivered</div>
+            </div>
+
+          </div>
+        </div>
+      {% else %}
+        <div class="alert alert-error" style="margin-top:12px;">
+          ❌ This order was cancelled.
+        </div>
+      {% endif %}
+
+      <div style="margin-top:16px; display:grid; gap:10px;">
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.8);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Customer</div>
+            <div style="font-weight:900; margin-top:6px;">{{ order.full_name }}</div>
+            <div class="muted" style="margin-top:4px; font-weight:800;">{{ order.phone }}</div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.8);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Address</div>
+            <div style="margin-top:6px; line-height:1.7;">{{ order.address }}</div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.8);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Placed On</div>
+            <div style="font-weight:900; margin-top:6px;">{{ order.created_at|date:"d M Y, h:i A" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        {% if order.status == "placed" or order.status == "packed" %}
+          <form method="post" action="{% url 'core:cancel_order' order.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit">Cancel Order</button>
+          </form>
+        {% endif %}
+
+        {% if order.payment_method == "razorpay" and not order.is_paid and order.status != "cancelled" %}
+          <a class="btn btn-primary" href="{% url 'core:start_payment' order.id %}">
+            🔁 Try Payment Again
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Payment + items -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Payment & Items</h3>
+
+      <!-- Payment summary -->
+      <div class="card" style="margin-top:12px; box-shadow:none; border:1px solid rgba(226,232,240,.8);">
+        <div class="card-body" style="padding:14px;">
+          <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div class="muted" style="font-weight:900;">Payment Method</div>
+              <div style="font-weight:900; margin-top:4px;">
+                {% if order.payment_method == "cod" %}
+                  Cash on Delivery (COD)
+                {% else %}
+                  Razorpay
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              {% if order.is_paid %}
+                <span class="badge badge-success"><span class="dot"></span>PAID</span>
+              {% else %}
+                <span class="badge badge-warning"><span class="dot"></span>NOT PAID</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items table -->
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+            <tr>
+              <td style="white-space:normal;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  {% if item.medicine.image %}
+                    <img class="thumb" src="{{ item.medicine.image.url }}" alt="{{ item.medicine.name }}">
+                  {% else %}
+                    <div class="thumb" style="display:grid; place-items:center; font-weight:900; color:#64748b;">Rx</div>
+                  {% endif %}
+                  <div>
+                    <div style="font-weight:900;">{{ item.medicine.name }}</div>
+                    {% if item.medicine.brand %}
+                      <div class="muted" style="font-weight:800; margin-top:2px;">Brand: {{ item.medicine.brand }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:900;">{{ item.qty }}</td>
+              <td>₹{{ item.price }}</td>
+              <td style="font-weight:900;">₹{% widthratio item.qty 1 item.price %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Grand total -->
+      <div style="margin-top:12px; border-top:1px solid rgba(226,232,240,.9); padding-top:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:900;">Grand Total</span>
+          <span style="font-weight:900; font-size:20px;">
+            ₹{{ order.total_amount|default_if_none:"" }}
+          </span>
+        </div>
+        {% comment %}
+          If your Order model doesn't have total_amount, remove the line above
+          and use the fallback block below instead.
+        {% endcomment %}
+      </div>
+
+      <!-- Fallback total calculation if no total_amount field -->
+      {% if not order.total_amount %}
+        <div class="muted" style="margin-top:8px; font-weight:800;">
+          Total shown from line items:
+          ₹{% for item in order.items.all %}{% if forloop.first %}{% endif %}{% endfor %}
+          <!-- If needed, compute in view and pass order_total for exact display -->
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

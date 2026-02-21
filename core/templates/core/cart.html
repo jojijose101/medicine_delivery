@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Cart - MediDelivery{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+  <div>
+    <h1 class="page-title">Your Cart</h1>
+    <p class="page-subtitle">Review items and proceed to checkout.</p>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-outline" href="{% url 'core:home' %}">← Continue shopping</a>
+
+    {% if items %}
+      <form method="post" action="{% url 'core:cart_clear' %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn btn-outline" type="submit">Clear Cart</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if items %}
+
+  <div class="grid grid-2" style="margin-top:14px; align-items:start;">
+
+    <!-- LEFT: Items -->
+    <div class="card">
+      <div class="card-body">
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Medicine</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in items %}
+              <tr>
+                <td style="white-space:normal;">
+                  <div style="display:flex; gap:12px; align-items:center;">
+                    {% if row.medicine.image %}
+                      <img class="thumb" src="{{ row.medicine.image.url }}" alt="{{ row.medicine.name }}">
+                    {% else %}
+                      <div class="thumb" style="display:grid; place-items:center; font-weight:900; color:#64748b;">Rx</div>
+                    {% endif %}
+
+                    <div>
+                      <div style="font-weight:900;">{{ row.medicine.name }}</div>
+                      <div class="muted" style="font-weight:800; margin-top:2px;">
+                        Brand: {{ row.medicine.brand }}
+                      </div>
+                      <div class="muted" style="font-weight:800; margin-top:2px;">
+                        Stock: {{ row.medicine.stock }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Qty controls -->
+                <td>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <a class="btn btn-outline btn-sm" href="{% url 'core:cart_dec' row.medicine.id %}">−</a>
+
+                    <form method="post" action="{% url 'core:cart_update' row.medicine.id %}"
+                          style="display:flex; gap:8px; align-items:center;">
+                      {% csrf_token %}
+                      <input
+                        class="input"
+                        type="number"
+                        name="qty"
+                        min="0"
+                        max="{{ row.medicine.stock }}"
+                        value="{{ row.qty }}"
+                        style="width:84px; padding:8px 10px;"
+                      >
+                      <button class="btn btn-outline btn-sm" type="submit">Update</button>
+                    </form>
+
+                    <a class="btn btn-outline btn-sm" href="{% url 'core:cart_inc' row.medicine.id %}">+</a>
+                  </div>
+
+                  <div class="muted" style="margin-top:6px; font-weight:800;">
+                    Max: {{ row.medicine.stock }} (set 0 to remove)
+                  </div>
+                </td>
+
+                <td>₹{{ row.medicine.price }}</td>
+                <td style="font-weight:900;">₹{{ row.subtotal }}</td>
+
+                <td>
+                  <a class="btn btn-danger btn-sm" href="{% url 'core:cart_remove' row.medicine.id %}">
+                    Remove
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title" style="margin-top:0;">Order Summary</h3>
+
+        <div style="margin-top:12px; display:grid; gap:10px;">
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <span class="muted" style="font-weight:800;">Items</span>
+            <span style="font-weight:900;">{{ items|length }}</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <span class="muted" style="font-weight:800;">Delivery</span>
+            <span class="badge badge-success"><span class="dot"></span>Free</span>
+          </div>
+
+          <div style="border-top:1px solid rgba(226,232,240,.9); padding-top:12px; display:flex; justify-content:space-between; gap:10px;">
+            <span style="font-weight:900;">Total</span>
+            <span style="font-weight:900; font-size:20px;">₹{{ total }}</span>
+          </div>
+        </div>
+
+        <a class="btn btn-primary" href="{% url 'core:checkout' %}" style="width:100%; margin-top:14px;">
+          Proceed to Checkout
+        </a>
+
+        <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="badge"><span class="dot"></span>Secure payments</span>
+          <span class="badge"><span class="dot"></span>Fast delivery</span>
+          <span class="badge"><span class="dot"></span>Verified stock</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% else %}
+
+  <div class="card" style="margin-top:14px;">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Your cart is empty</h3>
+      <p class="muted" style="margin:8px 0 0;">Browse medicines and add items to your cart.</p>
+      <a class="btn btn-primary" href="{% url 'core:home' %}" style="margin-top:12px;">Browse Medicines</a>
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}
