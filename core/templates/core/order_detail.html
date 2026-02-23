@@ -3,10 +3,6 @@
 
 {% block content %}
 
-<style>
-  
-</style>
-
 <a class="btn btn-link" href="{% url 'core:my_orders' %}">← Back to My Orders</a>
 
 <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px;">
@@ -160,7 +156,6 @@
               <th>Item</th>
               <th>Qty</th>
               <th>Price</th>
-              <th>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -183,7 +178,6 @@
               </td>
               <td style="font-weight:900;">{{ item.qty }}</td>
               <td>₹{{ item.price }}</td>
-              <td style="font-weight:900;">₹{% widthratio item.qty 1 item.price %}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -195,23 +189,10 @@
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-weight:900;">Grand Total</span>
           <span style="font-weight:900; font-size:20px;">
-            ₹{{ order.total_amount|default_if_none:"" }}
+            ₹{{ order_total|floatformat:2 }}
           </span>
         </div>
-        {% comment %}
-          If your Order model doesn't have total_amount, remove the line above
-          and use the fallback block below instead.
-        {% endcomment %}
       </div>
-
-      <!-- Fallback total calculation if no total_amount field -->
-      {% if not order.total_amount %}
-        <div class="muted" style="margin-top:8px; font-weight:800;">
-          Total shown from line items:
-          ₹{% for item in order.items.all %}{% if forloop.first %}{% endif %}{% endfor %}
-          <!-- If needed, compute in view and pass order_total for exact display -->
-        </div>
-      {% endif %}
 
     </div>
   </div>

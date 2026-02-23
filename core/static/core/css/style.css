@@ -396,3 +396,282 @@ tr:hover td{ background: rgba(14,165,233,.04); }
   .track-line.done {
     background: #22c55e;
   }
+
+
+/* Better global media behavior */
+img{
+  max-width: 100%;
+  height: auto;
+}
+
+body{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* If your base.html uses <main>, this makes footer stay at bottom */
+main{
+  flex: 1;
+}
+
+/* Prevent grid/card/table overflow issues */
+.grid,
+.grid-2,
+.grid-3{
+  min-width: 0;
+}
+
+.card,
+.card-body{
+  min-width: 0;
+}
+
+/* Make tables mobile-safe */
+.table-wrap{
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table{
+  min-width: 680px; /* allow horizontal scroll instead of layout breaking */
+}
+
+/* If table is used without .table-wrap, still safer */
+table{
+  min-width: 600px;
+}
+
+/* Inputs/buttons/selects don't overflow */
+.btn{
+  white-space: nowrap;
+  text-align: center;
+  max-width: 100%;
+}
+
+.input, select, textarea{
+  max-width: 100%;
+}
+
+/* Helpers for long text */
+.page-title,
+.page-subtitle,
+.muted,
+.card-title{
+  word-break: break-word;
+}
+
+/* Make thumbnails flexible */
+.thumb{
+  flex-shrink: 0;
+}
+
+/* =========================
+   Tablet (<= 992px)
+   ========================= */
+@media (max-width: 992px){
+  .container{
+    width: min(1100px, 94vw);
+  }
+
+  .topbar-inner{
+    width: min(1100px, 94vw);
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .nav{
+    gap: 8px;
+  }
+
+  .hero-img{
+    max-height: 260px;
+  }
+
+  /* Tracking bar wraps more cleanly */
+  .track-steps{
+    gap: 8px;
+  }
+
+  .track-step{
+    min-width: 66px;
+  }
+
+  .track-line{
+    min-width: 28px;
+  }
+}
+
+/* =========================
+   Mobile (<= 768px)
+   ========================= */
+@media (max-width: 768px){
+  .container{
+    width: 94vw;
+    padding: 12px 0 24px;
+  }
+
+  .topbar-inner{
+    padding: 10px 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .brand{
+    width: 100%;
+  }
+
+  .nav{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .nav a{
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .page-title{
+    font-size: 20px;
+    margin: 10px 0 6px;
+    line-height: 1.2;
+  }
+
+  .page-subtitle{
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .card{
+    border-radius: 12px;
+  }
+
+  .card-header{
+    padding: 14px 14px 0;
+  }
+
+  .card-body{
+    padding: 14px;
+  }
+
+  .card-title{
+    font-size: 16px;
+  }
+
+  .btn{
+    min-height: 40px;
+    padding: 10px 12px;
+  }
+
+  .btn-sm{
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .thumb{
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+  }
+
+  .hero-img{
+    max-height: 220px;
+    border-radius: 14px;
+  }
+
+  /* Footer stacks nicely */
+  .footer-inner,
+  .footer-bottom{
+    width: 94vw;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-links,
+  .footer-right{
+    width: 100%;
+  }
+
+  /* Tracking timeline compact on mobile */
+  .track-step{
+    min-width: 58px;
+  }
+
+  .track-label{
+    font-size: 11px;
+  }
+
+  .track-line{
+    min-width: 20px;
+    height: 3px;
+  }
+}
+
+/* =========================
+   Small phones (<= 480px)
+   ========================= */
+@media (max-width: 480px){
+  .container{
+    width: 95vw;
+  }
+
+  .logo,
+  .footer-logo{
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .brand{
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .nav a{
+    padding: 7px 9px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .page-title{
+    font-size: 18px;
+  }
+
+  .thumb{
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+  }
+
+  .badge{
+    font-size: 11px;
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .badge .dot{
+    width: 7px;
+    height: 7px;
+  }
+
+  .table-wrap table{
+    min-width: 600px;
+  }
+
+  /* Tracking bar becomes more wrap-friendly */
+  .track-steps{
+    gap: 6px;
+  }
+
+  .track-step{
+    min-width: 54px;
+  }
+
+  .track-line{
+    min-width: 14px;
+  }
+}

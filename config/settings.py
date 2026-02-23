@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-e++48bg$=rn^#owidjzqiar#zeb@_h5@0)gel#px4z3lgzih(%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")

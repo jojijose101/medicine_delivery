@@ -286,9 +286,27 @@ def my_orders(request):
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_total = sum(float(item.price) * item.qty for item in order.items.all())
-    return render(request, "core/order_detail.html", {"order": order, "order_total": order_total})
 
+    item_rows = []
+    order_total = 0
+
+    for item in order.items.select_related("medicine").all():
+        line_total = float(item.price) * item.qty
+        order_total += line_total
+        item_rows.append({
+            "obj": item,
+            "line_total": line_total,
+        })
+
+    return render(
+        request,
+        "core/order_detail.html",
+        {
+            "order": order,
+            "order_total": order_total,
+            "item_rows": item_rows,
+        },
+    )
 
 def signup_view(request):
     if request.user.is_authenticated:
@@ -371,10 +389,12 @@ def start_razorpay_payment(request, order_id):
     # You should compute total from OrderItems; here we assume you can calculate it
     total_rupees = sum([item.qty * float(item.price) for item in order.items.all()])
     amount = int(total_rupees)
+    amount_paise = int(total_rupees * 100)
+    
 
     rp_order = client.order.create(
         {
-            "amount": amount,
+            "amount": amount_paise,
             "currency": "INR",
             "payment_capture": 1,  # auto-capture (recommended)
             "receipt": f"app_order_{order.id}",
