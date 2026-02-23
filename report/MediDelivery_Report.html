@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MediDelivery — Project Report</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+  <style>
+    body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;max-width:980px;margin:24px auto;color:#0b1220}
+    h1,h2,h3{color:#062c33}
+    .section{margin-top:22px}
+    pre{background:#f6f8fa;padding:12px;border-radius:8px;overflow:auto}
+    .meta{color:#475569;font-size:0.95em}
+    .actions{margin-top:18px}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:#0369a1;color:#fff;text-decoration:none}
+  </style>
+</head>
+<body>
+  <h1>MediDelivery — Project Report</h1>
+  <div class="meta">Generated: February 23, 2026 — Includes working flowchart, model-relation ER diagram, and function flowchart.</div>
+
+  <div class="section">
+    <h2>1. Project Summary</h2>
+    <p>MediDelivery is a Django-based online medicine ordering system. It supports browsing medicines, session cart, checkout with Razorpay or COD, order tracking, an admin panel to assign deliveries, and a delivery user interface to update status.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. Working Flow Chart</h2>
+    <p>Flow from user browsing to delivery completion:</p>
+
+    <div class="mermaid">
+      flowchart LR
+        A[User: Browse Medicines] --> B[View Medicine Detail]
+        B --> C[Add to Cart]
+        C --> D[Cart View]
+        D --> E[Checkout]
+        E --> F{Payment Method}
+        F -->|COD| G[Create Order (is_paid: false)]
+        F -->|Razorpay| H[Start Razorpay Checkout]
+        H --> I[Payment Success]
+        I --> J[Mark Order is_paid = true]
+        J --> G
+        G --> K[Order Placed]
+        K --> L[Admin assigns delivery]
+        L --> M[Delivery user receives assignment]
+        M --> N[Delivery updates status: packed -> shipped -> delivered]
+        N --> O[Order Completed]
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>3. Model-Relation / Database Flow (ER Diagram)</h2>
+    <p>Core entities and relationships:</p>
+
+    <div class="mermaid">
+      erDiagram
+        USER ||--o{ PROFILE : has
+        USER ||--o{ ORDER : places
+        ORDER ||--o{ ORDERITEM : contains
+        MEDICINE ||--o{ ORDERITEM : "is referenced by"
+        USER ||--o{ ORDER : "assigned_delivery (nullable)" 
+
+        USER {
+          integer id PK
+          string username
+          string email
+        }
+        PROFILE {
+          integer id PK
+          integer user_id FK
+          string role
+          string phone
+          text address
+        }
+        MEDICINE {
+          integer id PK
+          string name
+          string brand
+          decimal price
+          integer stock
+        }
+        ORDER {
+          integer id PK
+          integer user_id FK
+          integer assigned_delivery_id FK nullable
+          string status
+          string payment_method
+          boolean is_paid
+          datetime created_at
+        }
+        ORDERITEM {
+          integer id PK
+          integer order_id FK
+          integer medicine_id FK
+          integer quantity
+          decimal unit_price
+        }
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>4. Function Flow Chart (major request/handler flows)</h2>
+    <p>How requests move through views and helpers:</p>
+
+    <div class="mermaid">
+      flowchart TD
+        subgraph Core
+          H1(home):::v[Home]
+          H2(medDetail):::v[medicine_detail]
+          H3(cart):::v[cart_view]
+          H4(checkout):::v[checkout]
+          H5(startPayment):::v[start_razorpay_payment]
+          H6(callback):::v[razorpay_callback]
+          H7(orderDetail):::v[order_detail]
+        end
+
+        subgraph Admin
+          A1(adminDashboard):::v[admin_dashboard]
+          A2(assign):::v[assign_delivery]
+        end
+
+        subgraph Delivery
+          D1(loginD):::v[delivery_login]
+          D2(dashboardD):::v[delivery_dashboard]
+          D3(update):::v[delivery_update_status]
+        end
+
+        H1 --> H2 --> H3 --> H4
+        H4 -->|razorpay| H5 --> H6 --> H7
+        H4 -->|cod| H7
+        H7 --> A1
+        A1 --> A2 --> D2
+        D2 --> D3
+
+        classDef v fill:#e6f6ff,stroke:#0369a1,stroke-width:1px
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>5. Notes & Recommendations</h2>
+    <ul>
+      <li>Secure secrets: move `SECRET_KEY` and Razorpay keys to environment and ensure `.env` is excluded from VCS.</li>
+      <li>Verify Razorpay signatures on callbacks in production.</li>
+      <li>Add unit tests for cart, checkout, and role-based decorators.</li>
+      <li>Consider swapping SQLite for PostgreSQL in production and serving static/media via S3 + CDN.</li>
+    </ul>
+  </div>
+
+  <div class="section actions">
+    <a class="btn" href="#" onclick="window.print();return false;">Export / Print to PDF</a>
+    <a class="btn" style="margin-left:8px;background:#0ea5b2" href="../README.md">Conversion Instructions</a>
+  </div>
+
+  <hr style="margin-top:36px" />
+  <div class="meta">Files referenced: `config/settings.py`, `core/models.py`, `core/views.py`, `delivery/views.py`, `adminapp/views.py`</div>
+</body>
+</html>
