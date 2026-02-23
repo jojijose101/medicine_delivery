@@ -1,33 +1,189 @@
-<h2>Order #{{ order.id }}</h2>
+{% extends "base.html" %}
+{% block title %}Delivery Order #{{ order.id }} - MediDelivery{% endblock %}
 
-<p><b>Status:</b> {{ order.status }}</p>
-<p><b>Customer:</b> {{ order.full_name }}</p>
-<p><b>Phone:</b> {{ order.phone }}</p>
-<p><b>Address:</b> {{ order.address }}</p>
+{% block content %}
 
-<hr>
-<h3>Items</h3>
-<ul>
-  {% for item in order.items.all %}
-    <li>{{ item.medicine.name }} — Qty: {{ item.qty }}</li>
-  {% endfor %}
-</ul>
+<a class="btn btn-link" href="{% url 'delivery:delivery_dashboard' %}">← Back to Delivery Dashboard</a>
 
-<hr>
-{% if order.status == "cancelled" %}
-  <p style="color:#dc2626; font-weight:700;">❌ This order was cancelled.</p>
+<div
+  style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px;">
+  <div>
+    <h1 class="page-title">Order #{{ order.id }}</h1>
+    <p class="page-subtitle">Delivery order details and status update.</p>
+  </div>
 
-{% else %}
-<h3>Update Status</h3>
-<form method="post" action="{% url 'delivery:delivery_update_status' order.id %}">
-  {% csrf_token %}
-  <select name="status" required>
-    <option value="packed">Packed</option>
-    <option value="shipped">Shipped</option>
-    <option value="delivered">Delivered</option>
-  </select>
-  <button type="submit">Update</button>
-</form>
-{% endif %}
-<br>
-<a href="{% url 'delivery:delivery_dashboard' %}">Back</a>
+  <div>
+    {% if order.status == "placed" %}
+    <span class="badge badge-info"><span class="dot"></span>Placed</span>
+    {% elif order.status == "packed" %}
+    <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+    {% elif order.status == "shipped" %}
+    <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+    {% elif order.status == "delivered" %}
+    <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+    {% elif order.status == "cancelled" %}
+    <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+    {% else %}
+    <span class="badge"><span class="dot"></span>{{ order.status|title }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:14px; align-items:start;">
+
+  <!-- LEFT: Customer + items -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Customer Details</h3>
+
+      <div style="margin-top:12px; display:grid; gap:10px;">
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+              Customer</div>
+            <div style="font-weight:900; margin-top:6px;">{{ order.full_name }}</div>
+            <div class="muted" style="font-weight:800; margin-top:4px;">{{ order.phone }}</div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+              Delivery Address</div>
+            <div style="margin-top:6px; line-height:1.7;">{{ order.address }}</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="card-title" style="margin:16px 0 0;">Items</h3>
+
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+            <tr>
+              <td style="white-space:normal;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  {% if item.medicine.image %}
+                  <img class="thumb" src="{{ item.medicine.image.url }}" alt="{{ item.medicine.name }}">
+                  {% else %}
+                  <div class="thumb" style="display:grid; place-items:center; font-weight:900; color:#64748b;">Rx</div>
+                  {% endif %}
+                  <div>
+                    <div style="font-weight:900;">{{ item.medicine.name }}</div>
+                    {% if item.medicine.brand %}
+                    <div class="muted" style="font-weight:800; margin-top:2px;">Brand: {{ item.medicine.brand }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:900;">{{ item.qty }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Update status -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Delivery Actions</h3>
+
+      <!-- Payment status warning for delivery role -->
+      <div class="card" style="margin-top:12px; box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+        <div class="card-body" style="padding:14px;">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div>
+              <div class="muted" style="font-weight:900;">Payment Method</div>
+              <div style="font-weight:900; margin-top:4px;">
+                {% if order.payment_method == "cod" %}COD{% else %}Razorpay{% endif %}
+              </div>
+            </div>
+
+            <div>
+              {% if order.is_paid %}
+              <span class="badge badge-success"><span class="dot"></span>Paid</span>
+              {% else %}
+              <span class="badge badge-warning"><span class="dot"></span>Not Paid</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if order.payment_method == "razorpay" and not order.is_paid %}
+          <div class="alert alert-warning" style="margin-top:12px;">
+            Online payment is pending. Status update is locked until payment is completed.
+          </div>
+          {% else %}
+          <div class="alert alert-warning" style="margin-top:10px;">
+            Online payment is not completed yet. Delivery status update may be restricted.
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      {% if order.status == "cancelled" %}
+      <div class="alert alert-error" style="margin-top:12px;">
+        ❌ This order was cancelled. Status cannot be updated.
+      </div>
+
+      {% elif order.status == "delivered" %}
+      <div class="alert alert-success" style="margin-top:12px;">
+        ✅ This order has already been delivered.
+      </div>
+
+      {% else %}
+      <div class="card" style="margin-top:12px; box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+        <div class="card-body" style="padding:14px;">
+          <div class="muted" style="font-weight:900; margin-bottom:8px;">Update Status</div>
+
+          <form method="post" action="{% url 'delivery:delivery_update_status' order.id %}" class="form-row">
+            {% csrf_token %}
+
+            <select name="status" required class="input">
+              {% if order.status == "placed" %}
+              <option value="packed" selected>Packed</option>
+              {% elif order.status == "packed" %}
+              <option value="shipped" selected>Shipped</option>
+              {% elif order.status == "shipped" %}
+              <option value="delivered" selected>Delivered</option>
+              {% endif %}
+            </select>
+
+            <button class="btn btn-primary" type="submit" style="margin-top:10px;">
+              Update Status
+            </button>
+          </form>
+          <p class="muted" style="margin-top:8px; font-weight:800;">
+            {% if order.status == "placed" %}
+            Next step: mark this order as <b>Packed</b>.
+            {% elif order.status == "packed" %}
+            Next step: mark this order as <b>Shipped</b>.
+            {% elif order.status == "shipped" %}
+            Next step: mark this order as <b>Delivered</b>.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge"><span class="dot"></span>Delivery tracking</span>
+        <span class="badge"><span class="dot"></span>Customer info</span>
+        <span class="badge"><span class="dot"></span>Status updates</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

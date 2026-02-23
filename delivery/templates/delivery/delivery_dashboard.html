@@ -1,18 +1,135 @@
-<h2>🚚 Delivery Dashboard</h2>
+{% extends "base.html" %}
+{% block title %}Delivery Dashboard - MediDelivery{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+  <div>
+    <h1 class="page-title">🚚 Delivery Dashboard</h1>
+    <p class="page-subtitle">View and manage your assigned delivery orders.</p>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-outline" href="{% url 'core:home' %}">← Home</a>
+  </div>
+</div>
 
 {% if orders %}
-  <ul>
-    {% for o in orders %}
-      <li>
-        <a href="{% url 'delivery:delivery_order_detail' o.id %}">
-          Order #{{ o.id }}
-        </a>
-        — {{ o.created_at }} — <b>{{ o.status }}</b>
-      </li>
-    {% endfor %}
-  </ul>
+  <div class="grid grid-3" style="margin-top:14px;">
+    <!-- Quick stats -->
+    <div class="card">
+      <div class="card-body">
+        <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Assigned Orders</div>
+        <div style="font-size:26px; font-weight:900; margin-top:6px;">{{ orders|length }}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Pending Delivery</div>
+        <div style="margin-top:8px;">
+          <span class="badge badge-warning"><span class="dot"></span>Active Orders</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Status Tracking</div>
+        <div class="muted" style="margin-top:6px; font-weight:800;">Packed → Shipped → Delivered</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">Assigned Orders</h3>
+
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td style="font-weight:900;">#{{ o.id }}</td>
+
+              <td style="white-space:normal;">
+                <div style="font-weight:900;">{{ o.full_name }}</div>
+                <div class="muted" style="font-weight:800; margin-top:2px;">{{ o.phone }}</div>
+              </td>
+
+              <td style="white-space:normal;">
+                <div>{{ o.created_at|date:"d M Y" }}</div>
+                <div class="muted" style="font-weight:800;">{{ o.created_at|date:"h:i A" }}</div>
+              </td>
+
+              <td>
+                {% if o.status == "placed" %}
+                  <span class="badge badge-info"><span class="dot"></span>Placed</span>
+                {% elif o.status == "packed" %}
+                  <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+                {% elif o.status == "shipped" %}
+                  <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+                {% elif o.status == "delivered" %}
+                  <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+                {% elif o.status == "cancelled" %}
+                  <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+                {% else %}
+                  <span class="badge"><span class="dot"></span>{{ o.status|title }}</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if o.payment_method == "razorpay" %}
+                  {% if o.is_paid %}
+                    <span class="badge badge-success"><span class="dot"></span>Paid</span>
+                  {% else %}
+                    <span class="badge badge-warning"><span class="dot"></span>Pending</span>
+                  {% endif %}
+                {% else %}
+                  {% if o.is_paid %}
+                    <span class="badge badge-success"><span class="dot"></span>COD Paid</span>
+                  {% else %}
+                    <span class="badge"><span class="dot"></span>COD</span>
+                  {% endif %}
+                {% endif %}
+              </td>
+
+              <td>
+                <a class="btn btn-outline btn-sm" href="{% url 'delivery:delivery_order_detail' o.id %}">
+                  Open
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="muted" style="margin-top:10px; font-weight:800;">
+        Total assigned: {{ orders|length }}
+      </div>
+    </div>
+  </div>
+
 {% else %}
-  <p>No assigned orders.</p>
+  <div class="card" style="margin-top:14px;">
+    <div class="card-body">
+      <h3 class="card-title" style="margin-top:0;">No assigned orders</h3>
+      <p class="muted" style="margin:8px 0 0;">You currently don’t have any delivery orders assigned.</p>
+      <a class="btn btn-outline" href="{% url 'core:home' %}" style="margin-top:12px;">Back to Home</a>
+    </div>
+  </div>
 {% endif %}
 
-<a href="{% url 'core:home' %}">Home</a>
+{% endblock %}

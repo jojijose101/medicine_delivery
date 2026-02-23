@@ -1,47 +1,152 @@
-<h2>📊 Admin Dashboard</h2>
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - MediDelivery{% endblock %}
 
-<p>Total Orders: {{ total }}</p>
-<p>Delivered: {{ delivered }}</p>
-<p>Pending: {{ pending }}</p>
+{% block content %}
 
-<hr>
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+  <div>
+    <h1 class="page-title">📊 Admin Dashboard</h1>
+    <p class="page-subtitle">Monitor orders and assign delivery staff.</p>
+  </div>
 
-<table border="1" cellpadding="5">
-  <tr>
-    <th>ID</th>
-    <th>Customer</th>
-    <th>Status</th>
-    <th>Assigned Delivery</th>
-    <th>Assign</th>
-  </tr>
+  <a class="btn btn-outline" href="{% url 'core:home' %}">← Home</a>
+</div>
 
-  {% for o in orders %}
-  <tr>
-    <td>{{ o.id }}</td>
-    <td>{{ o.user.username }}</td>
-    <td>{{ o.status }}</td>
-    <td>
-      {% if o.assigned_delivery %}
-        {{ o.assigned_delivery.username }}
-      {% else %}
-        Not Assigned
-      {% endif %}
-    </td>
-    <td>
-      <form method="post" action="{% url 'adminapp:assign_delivery' o.id %}">
-        {% csrf_token %}
-        <select name="delivery_id" required>
-          <option value="">Select</option>
-          {% for d in delivery_users %}
-            <option value="{{ d.id }}">{{ d.username }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit">Assign</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+<!-- Stats -->
+<div class="grid grid-3" style="margin-top:14px;">
+  <div class="card">
+    <div class="card-body">
+      <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+        Total Orders
+      </div>
+      <div style="font-size:28px; font-weight:900; margin-top:6px;">{{ total }}</div>
+      <div class="muted" style="margin-top:6px; font-weight:800;">All created orders</div>
+    </div>
+  </div>
 
-<br>
-<a href="{% url 'core:home' %}">Home</a>
+  <div class="card">
+    <div class="card-body">
+      <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+        Delivered
+      </div>
+      <div style="font-size:28px; font-weight:900; margin-top:6px;">{{ delivered }}</div>
+      <div style="margin-top:6px;">
+        <span class="badge badge-success"><span class="dot"></span>Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+        Pending
+      </div>
+      <div style="font-size:28px; font-weight:900; margin-top:6px;">{{ pending }}</div>
+      <div style="margin-top:6px;">
+        <span class="badge badge-warning"><span class="dot"></span>Needs action</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Orders table -->
+<div class="card" style="margin-top:14px;">
+  <div class="card-body">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h3 class="card-title" style="margin:0;">Order Assignment</h3>
+      <div class="muted" style="font-weight:800;">Orders listed: {{ orders|length }}</div>
+    </div>
+
+    {% if orders %}
+      <div class="table-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Assigned Delivery</th>
+              <th>Assign / Reassign</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td style="font-weight:900;">#{{ o.id }}</td>
+
+              <td style="white-space:normal;">
+                <div style="font-weight:900;">{{ o.user.username }}</div>
+                {% if o.full_name %}
+                  <div class="muted" style="font-weight:800; margin-top:2px;">{{ o.full_name }}</div>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if o.status == "placed" %}
+                  <span class="badge badge-info"><span class="dot"></span>Placed</span>
+                {% elif o.status == "packed" %}
+                  <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+                {% elif o.status == "shipped" %}
+                  <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+                {% elif o.status == "delivered" %}
+                  <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+                {% elif o.status == "cancelled" %}
+                  <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+                {% else %}
+                  <span class="badge"><span class="dot"></span>{{ o.status|title }}</span>
+                {% endif %}
+              </td>
+
+              <td style="white-space:normal;">
+                {% if o.assigned_delivery %}
+                  <span class="badge badge-success"><span class="dot"></span>{{ o.assigned_delivery.username }}</span>
+                {% else %}
+                  <span class="badge badge-warning"><span class="dot"></span>Not Assigned</span>
+                {% endif %}
+              </td>
+
+              <td style="min-width:240px;">
+                {% if o.status == "cancelled" or o.status == "delivered" %}
+                  <span class="muted" style="font-weight:800;">
+                    {% if o.status == "delivered" %}
+                      Completed order
+                    {% else %}
+                      Cancelled order
+                    {% endif %}
+                  </span>
+                {% else %}
+                  <form method="post" action="{% url 'adminapp:assign_delivery' o.id %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <select name="delivery_id" required class="input" style="min-width:160px;">
+                      <option value="">Select delivery user</option>
+                      {% for d in delivery_users %}
+                        <option value="{{ d.id }}"
+                          {% if o.assigned_delivery and o.assigned_delivery.id == d.id %}selected{% endif %}>
+                          {{ d.username }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <button class="btn btn-primary btn-sm" type="submit">
+                      {% if o.assigned_delivery %}Reassign{% else %}Assign{% endif %}
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card" style="margin-top:12px; box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+        <div class="card-body" style="padding:14px;">
+          <h4 style="margin:0;">No orders found</h4>
+          <p class="muted" style="margin:6px 0 0;">Orders will appear here when customers place medicine orders.</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

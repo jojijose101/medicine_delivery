@@ -22,36 +22,53 @@ def delivery_update_status(request, order_id):
     order = get_object_or_404(Order, id=order_id, assigned_delivery=request.user)
 
     if request.method != "POST":
-        return redirect("core:delivery_order_detail", order_id=order.id)
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
 
-    # Block updates on cancelled orders
     if order.status == "cancelled":
         messages.error(request, "Cancelled orders cannot be updated.")
-        return redirect("core:delivery_order_detail", order_id=order.id)
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
 
-    # Block updates if Razorpay order not paid
+    if order.status == "delivered":
+        messages.info(request, "This order is already delivered.")
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
+
+    # Prevent delivery updates if Razorpay payment not completed
     if order.payment_method == "razorpay" and not order.is_paid:
         messages.error(request, "Cannot update status until payment is completed.")
-        return redirect("core:delivery_order_detail", order_id=order.id)
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
 
     new_status = request.POST.get("status")
 
-    allowed = ["packed", "shipped", "delivered"]
-    if new_status not in allowed:
-        messages.error(request, "Invalid status.")
-        return redirect("core:delivery_order_detail", order_id=order.id)
+    # Strict next-step progression
+    next_status_map = {
+        "placed": "packed",
+        "packed": "shipped",
+        "shipped": "delivered",
+    }
 
-    # Optional: prevent going backwards
-    status_order = {"placed": 0, "packed": 1, "shipped": 2, "delivered": 3, "cancelled": -1}
-    if status_order.get(new_status, -99) < status_order.get(order.status, -99):
-        messages.error(request, "You cannot move order status backwards.")
-        return redirect("core:delivery_order_detail", order_id=order.id)
+    expected_next = next_status_map.get(order.status)
+
+    if not expected_next:
+        messages.error(request, "Invalid current order status.")
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
+
+    if new_status != expected_next:
+        messages.error(
+            request,
+            f"Invalid update. From '{order.status}' you can only move to '{expected_next}'."
+        )
+        return redirect("delivery:delivery_order_detail", order_id=order.id)
 
     order.status = new_status
+
+    # Optional: mark COD paid automatically when delivered
+    if order.status == "delivered" and order.payment_method == "cod":
+        order.is_paid = True
+
     order.save()
 
-    messages.success(request, f"Order status updated to {new_status}.")
-    return redirect("core:delivery_order_detail", order_id=order.id)
+    messages.success(request, f"Order status updated to {order.status}.")
+    return redirect("delivery:delivery_order_detail", order_id=order.id)
 
 def delivery_login(request):
     if request.user.is_authenticated:

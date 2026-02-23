@@ -1,5 +1,79 @@
-<h1>✅ Order Placed Successfully!</h1>
-<p>Your order ID is <b>#{{ order.id }}</b></p>
-<p>Status: {{ order.status }}</p>
+{% extends "base.html" %}
+{% block title %}Order Placed - MediDelivery{% endblock %}
 
-<a href="{% url 'core:home' %}">Back to Home</a>
+{% block content %}
+
+<div class="grid" style="place-items:center; margin-top:18px;">
+  <div class="card" style="width:min(680px, 100%);">
+    <div class="card-body" style="text-align:center;">
+
+      <!-- success icon -->
+      <div style="width:70px; height:70px; margin:0 auto 12px; border-radius:999px; display:grid; place-items:center;
+                  background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22);">
+        <span style="font-size:34px;">✅</span>
+      </div>
+
+      <h1 class="page-title" style="margin:0;">Order Placed Successfully!</h1>
+      <p class="page-subtitle" style="margin-top:8px;">
+        Your medicine order has been placed and is being processed.
+      </p>
+
+      <div class="grid grid-2" style="margin-top:14px; text-align:left;">
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+              Order ID
+            </div>
+            <div style="font-weight:900; font-size:20px; margin-top:6px;">
+              #{{ order.id }}
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; border:1px solid rgba(226,232,240,.85);">
+          <div class="card-body" style="padding:14px;">
+            <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+              Status
+            </div>
+            <div style="margin-top:6px;">
+              {% if order.status == "placed" %}
+                <span class="badge badge-info"><span class="dot"></span>Placed</span>
+              {% elif order.status == "packed" %}
+                <span class="badge badge-warning"><span class="dot"></span>Packed</span>
+              {% elif order.status == "shipped" %}
+                <span class="badge badge-info"><span class="dot"></span>Shipped</span>
+              {% elif order.status == "delivered" %}
+                <span class="badge badge-success"><span class="dot"></span>Delivered</span>
+              {% elif order.status == "cancelled" %}
+                <span class="badge badge-danger"><span class="dot"></span>Cancelled</span>
+              {% else %}
+                <span class="badge"><span class="dot"></span>{{ order.status|title }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="{% url 'core:order_detail' order.id %}">
+          View Order Details
+        </a>
+        <a class="btn btn-outline" href="{% url 'core:my_orders' %}">
+          My Orders
+        </a>
+        <a class="btn btn-outline" href="{% url 'core:home' %}">
+          Back to Home
+        </a>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <span class="badge"><span class="dot"></span>Fast delivery</span>
+        <span class="badge"><span class="dot"></span>Verified stock</span>
+        <span class="badge"><span class="dot"></span>Secure checkout</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

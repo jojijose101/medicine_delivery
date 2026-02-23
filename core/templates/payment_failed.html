@@ -1,6 +1,62 @@
-<h2>❌ Payment Not Completed</h2>
-<p>Order #{{ order.id }}</p>
-<p>You can try again anytime.</p>
+{% extends "base.html" %}
+{% block title %}Payment Failed - MediDelivery{% endblock %}
 
-<a href="{% url 'core:start_payment' order.id %}">Try Again Payment</a> |
-<a href="{% url 'core:order_detail' order.id %}">Back to Order</a>
+{% block content %}
+
+<div class="grid" style="place-items:center; margin-top:18px;">
+  <div class="card" style="width:min(680px, 100%);">
+    <div class="card-body" style="text-align:center;">
+
+      <!-- failed icon -->
+      <div style="width:70px; height:70px; margin:0 auto 12px; border-radius:999px; display:grid; place-items:center;
+                  background:rgba(239,68,68,.10); border:1px solid rgba(239,68,68,.22);">
+        <span style="font-size:34px;">❌</span>
+      </div>
+
+      <h1 class="page-title" style="margin:0;">Payment Not Completed</h1>
+      <p class="page-subtitle" style="margin-top:8px;">
+        Your payment was not completed for this order. You can try again anytime.
+      </p>
+
+      <div class="card" style="margin-top:14px; box-shadow:none; border:1px solid rgba(226,232,240,.85); text-align:left;">
+        <div class="card-body" style="padding:14px;">
+          <div class="muted" style="font-weight:900; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">
+            Order ID
+          </div>
+          <div style="font-weight:900; font-size:20px; margin-top:6px;">
+            #{{ order.id }}
+          </div>
+
+          <div style="margin-top:10px;">
+            <span class="badge badge-warning"><span class="dot"></span>Payment Pending</span>
+          </div>
+
+          <p class="muted" style="margin:10px 0 0; line-height:1.7;">
+            If amount was debited but order is not marked as paid, please wait a moment and check the order page again.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="{% url 'core:start_payment' order.id %}">
+          Try Again Payment
+        </a>
+        <a class="btn btn-outline" href="{% url 'core:order_detail' order.id %}">
+          Back to Order
+        </a>
+        <a class="btn btn-outline" href="{% url 'core:my_orders' %}">
+          My Orders
+        </a>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <span class="badge"><span class="dot"></span>Secure gateway</span>
+        <span class="badge"><span class="dot"></span>Retry anytime</span>
+        <span class="badge"><span class="dot"></span>Order safe</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
